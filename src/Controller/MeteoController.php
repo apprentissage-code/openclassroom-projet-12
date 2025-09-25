@@ -26,18 +26,7 @@ final class MeteoController extends AbstractController
   public function getMeteoPerCity(string $city, HttpClientInterface $client, TagAwareCacheInterface $cache): JsonResponse
   {
     $cacheId = "meteo_city_" . $city;
-    $data = $cache->get($cacheId, function (ItemInterface $item) use ($client, $city) {
-      $item->tag('meteoCache');
-      $response = $client->request(
-        'GET',
-        "https://api.openweathermap.org/data/2.5/weather?q={$city},{$this->country}&appid={$this->apiKey}"
-      );
-
-      return [
-        "content" => $response->getContent(),
-        "statusCode" => $response->getStatusCode()
-      ];
-    });
+    $data = $this->callToApiOpenWeatherMap($city, $cacheId, $client, $cache);
 
     return new JsonResponse($data["content"], $data["statusCode"], [], true);
   }
@@ -55,12 +44,40 @@ final class MeteoController extends AbstractController
     }
 
     $cacheId = "meteo_zip_" . $zipCode;
-    $data = $cache->get($cacheId, function (ItemInterface $item) use ($client, $zipCode) {
+    $data = $this->callToApiOpenWeatherMap($zipCode, $cacheId, $client, $cache);
+
+    return new JsonResponse($data["content"], $data["statusCode"], [], true);
+  }
+
+  private function callToApiOpenWeatherMap(int|string $cityOrZip, string $cacheId, HttpClientInterface $client, TagAwareCacheInterface $cache)
+  {
+    $data = $cache->get($cacheId, function (ItemInterface $item) use ($client, $cityOrZip) {
+      $item->expiresAfter(600);
       $item->tag('meteoCache');
+
+      if (is_numeric($cityOrZip)) {
+        $queryParam = $cityOrZip . ',' . $this->country;
+        $queryKey = 'zip';
+      } else {
+        $queryParam = $cityOrZip;
+        $queryKey = 'q';
+      }
+
       $response = $client->request(
         'GET',
-        "https://api.openweathermap.org/data/2.5/weather?q={$zipCode},{$this->country}&appid={$this->apiKey}"
+        "https://api.openweathermap.org/data/2.5/weather",
+        [
+          'query' => [
+            $queryKey => $queryParam,
+            'appid' => $this->apiKey,
+            'units' => 'metric',
+          ],
+        ]
       );
+
+      if ($response->getStatusCode() !== 200) {
+        throw new \Exception("Ville non trouvée.");
+      }
 
       return [
         "content" => $response->getContent(),
@@ -68,6 +85,6 @@ final class MeteoController extends AbstractController
       ];
     });
 
-    return new JsonResponse($data["content"], $data["statusCode"], [], true);
+    return $data;
   }
 }
