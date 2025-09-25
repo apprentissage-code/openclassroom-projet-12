@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 
 final class UserController extends AbstractController
@@ -24,6 +25,7 @@ final class UserController extends AbstractController
   }
 
   #[Route('/api/user/{id}', name: 'delete-user', methods: ['DELETE'])]
+  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un utilisateur')]
   public function deleteUser(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
   {
     $user = $userRepository->find($id);
@@ -46,6 +48,7 @@ final class UserController extends AbstractController
   }
 
   #[Route('/api/user/{id}', name: 'modify-user', methods: ['PUT'])]
+  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour modifier un utilisateur')]
   public function modifyUser(
     int $id,
     UserRepository $userRepository,
