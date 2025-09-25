@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Exceptions\CityNotFoundException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -25,8 +27,15 @@ final class MeteoController extends AbstractController
   #[Route('/api/external/meteo/{city}', name: 'meteo-zip-code', methods: ['GET'])]
   public function getMeteoPerCity(string $city, HttpClientInterface $client, TagAwareCacheInterface $cache): JsonResponse
   {
-    $cacheId = "meteo_city_" . $city;
-    $data = $this->callToApiOpenWeatherMap($city, $cacheId, $client, $cache);
+    try {
+      $cacheId = "meteo_city_" . $city;
+      $data = $this->callToApiOpenWeatherMap($city, $cacheId, $client, $cache);
+      return new JsonResponse($data["content"], $data["statusCode"], [], true);
+    } catch (CityNotFoundException $e) {
+      return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+    } catch (\Exception $e) {
+      return new JsonResponse(['error' => 'Server error.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
 
     return new JsonResponse($data["content"], $data["statusCode"], [], true);
   }
@@ -38,13 +47,24 @@ final class MeteoController extends AbstractController
     if (!$zipCode) {
       $user = $this->getUser();
       if (!$user instanceof User || !$user->getPostcode()) {
-        return new JsonResponse(['error' => 'Aucune ville renseignée'], 400);
+        return new JsonResponse(['error' => 'No city specified.'], 400);
       }
       $zipCode = $user->getPostcode();
     }
 
-    $cacheId = "meteo_zip_" . $zipCode;
-    $data = $this->callToApiOpenWeatherMap($zipCode, $cacheId, $client, $cache);
+    if (empty($zipCode)) {
+      return new JsonResponse(['error' => 'The postal code is mandatory.'], Response::HTTP_BAD_REQUEST);
+    }
+
+    try {
+      $cacheId = "meteo_zip_" . $zipCode;
+      $data = $this->callToApiOpenWeatherMap($zipCode, $cacheId, $client, $cache);
+      return new JsonResponse($data["content"], $data["statusCode"], [], true);
+    } catch (CityNotFoundException $e) {
+      return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+    } catch (\Exception $e) {
+      return new JsonResponse(['error' => 'Server error.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
 
     return new JsonResponse($data["content"], $data["statusCode"], [], true);
   }
@@ -76,7 +96,7 @@ final class MeteoController extends AbstractController
       );
 
       if ($response->getStatusCode() !== 200) {
-        throw new \Exception("Ville non trouvée.");
+        throw new CityNotFoundException((string) $cityOrZip);
       }
 
       return [

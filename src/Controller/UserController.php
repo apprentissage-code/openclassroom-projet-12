@@ -95,28 +95,26 @@ final class UserController extends AbstractController
     Request $request,
     UserPasswordHasherInterface $passwordHasher
   ): JsonResponse {
-
     $data = json_decode($request->getContent(), true);
+
+    foreach (['login', 'postcode', 'password'] as $field) {
+      if (empty($data[$field])) {
+        return new JsonResponse(['error' => ucfirst($field) . ' is mandatory.'], Response::HTTP_BAD_REQUEST);
+      }
+    }
+
     $user = new User();
-    if (isset($data['login'])) {
-      $user->setLogin($data['login']);
-    }
-
-    if (isset($data['postcode'])) {
-      $user->setPostcode($data['postcode']);
-    }
-
-    if (isset($data['password'])) {
-      $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
-      $user->setPassword($hashedPassword);
-    }
+    $user->setLogin($data['login']);
+    $user->setPostcode($data['postcode']);
+    $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
+    $user->setPassword($hashedPassword);
 
     $entityManager->persist($user);
     $entityManager->flush();
 
     return new JsonResponse(
       [
-        'message' => "User created successfully",
+        'message' => "User created successfully.",
         'user' => [
           'id' => $user->getId(),
           'login' => $user->getLogin(),

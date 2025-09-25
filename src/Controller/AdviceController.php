@@ -18,6 +18,10 @@ final class AdviceController extends AbstractController
   #[Route('/api/advices/{month}', name: 'advices-month', methods: ['GET'])]
   public function getAdvicesByMonth(int $month, AdviceRepository $adviceRepository, SerializerInterface $serializer): JsonResponse
   {
+    if ($month < 1 || $month > 12) {
+      return new JsonResponse(['error' => 'Invalid month.'], Response::HTTP_BAD_REQUEST);
+    }
+
     $advices = $this->getAdvicePerMonth($adviceRepository, $month);
     $jsonAdvices = $serializer->serialize($advices, 'json');
     return new JsonResponse($jsonAdvices, Response::HTTP_OK, [], true);
@@ -40,7 +44,7 @@ final class AdviceController extends AbstractController
 
     if (!$advice) {
       return new JsonResponse(
-        ['error' => 'Advice not found'],
+        ['error' => 'Advice not found.'],
         Response::HTTP_NOT_FOUND
       );
     }
@@ -49,7 +53,7 @@ final class AdviceController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "Advice {$id} deleted successfully"],
+      ['message' => "Advice {$id} deleted successfully."],
       Response::HTTP_OK,
       [],
     );
@@ -67,7 +71,7 @@ final class AdviceController extends AbstractController
 
     if (!$advice) {
       return new JsonResponse(
-        ['error' => 'Advice not found'],
+        ['error' => 'Advice not found.'],
         Response::HTTP_NOT_FOUND
       );
     }
@@ -85,7 +89,7 @@ final class AdviceController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "Advice {$id} updated successfully"],
+      ['message' => "Advice {$id} updated successfully."],
       Response::HTTP_OK,
       [],
     );
@@ -118,7 +122,7 @@ final class AdviceController extends AbstractController
         'advice' => [
           'id' => $advice->getId(),
           'content' => $advice->getContent(),
-          'mnths' => $advice->getMonths(),
+          'months' => $advice->getMonths(),
         ]
       ],
       Response::HTTP_OK,
