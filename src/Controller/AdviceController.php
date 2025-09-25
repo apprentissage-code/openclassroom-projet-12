@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Advice;
 use App\Repository\AdviceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,8 +33,8 @@ final class AdviceController extends AbstractController
   }
 
   #[Route('/api/advice/{id}', name: 'delete-advice', methods: ['DELETE'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un conseil')]
-  public function deleteADvice(int $id, AdviceRepository $adviceRepository, EntityManagerInterface $entityManager): JsonResponse
+  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un conseil.')]
+  public function deleteAdvice(int $id, AdviceRepository $adviceRepository, EntityManagerInterface $entityManager): JsonResponse
   {
     $advice = $adviceRepository->find($id);
 
@@ -55,7 +56,7 @@ final class AdviceController extends AbstractController
   }
 
   #[Route('/api/advice/{id}', name: 'modify-advice', methods: ['PUT'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour modifier un conseil')]
+  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour modifier un conseil.')]
   public function modifyAdvice(
     int $id,
     AdviceRepository $adviceRepository,
@@ -85,6 +86,41 @@ final class AdviceController extends AbstractController
 
     return new JsonResponse(
       ['message' => "Advice {$id} updated successfully"],
+      Response::HTTP_OK,
+      [],
+    );
+  }
+
+  #[Route('/api/advice/new', name: 'create-advice', methods: ['POST'])]
+  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un conseil.')]
+  public function createAdvice(
+    EntityManagerInterface $entityManager,
+    Request $request,
+  ): JsonResponse {
+
+    $advice = new Advice();
+    $data = json_decode($request->getContent(), true);
+
+    if (isset($data['content'])) {
+      $advice->setContent($data['content']);
+    }
+
+    if (isset($data['months'])) {
+      $advice->setMonths($data['months']);
+    }
+
+    $entityManager->persist($advice);
+    $entityManager->flush();
+
+    return new JsonResponse(
+      [
+        'message' => "Advice created successfully",
+        'advice' => [
+          'id' => $advice->getId(),
+          'content' => $advice->getContent(),
+          'mnths' => $advice->getMonths(),
+        ]
+      ],
       Response::HTTP_OK,
       [],
     );
