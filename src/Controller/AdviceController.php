@@ -6,6 +6,7 @@ use App\Repository\AdviceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -31,7 +32,7 @@ final class AdviceController extends AbstractController
   }
 
   #[Route('/api/advice/{id}', name: 'delete-advice', methods: ['DELETE'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un utilisateur')]
+  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un conseil')]
   public function deleteADvice(int $id, AdviceRepository $adviceRepository, EntityManagerInterface $entityManager): JsonResponse
   {
     $advice = $adviceRepository->find($id);
@@ -48,6 +49,42 @@ final class AdviceController extends AbstractController
 
     return new JsonResponse(
       ['message' => "Advice {$id} deleted successfully"],
+      Response::HTTP_OK,
+      [],
+    );
+  }
+
+  #[Route('/api/advice/{id}', name: 'modify-advice', methods: ['PUT'])]
+  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour modifier un conseil')]
+  public function modifyAdvice(
+    int $id,
+    AdviceRepository $adviceRepository,
+    EntityManagerInterface $entityManager,
+    Request $request,
+  ): JsonResponse {
+    $advice = $adviceRepository->find($id);
+
+    if (!$advice) {
+      return new JsonResponse(
+        ['error' => 'Advice not found'],
+        Response::HTTP_NOT_FOUND
+      );
+    }
+
+    $data = json_decode($request->getContent(), true);
+
+    if (isset($data['content'])) {
+      $advice->setContent($data['content']);
+    }
+
+    if (isset($data['months'])) {
+      $advice->setMonths($data['months']);
+    }
+
+    $entityManager->flush();
+
+    return new JsonResponse(
+      ['message' => "Advice {$id} updated successfully"],
       Response::HTTP_OK,
       [],
     );
