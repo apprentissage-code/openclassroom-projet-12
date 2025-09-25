@@ -9,43 +9,43 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: AdviceRepository::class)]
 class Advice
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+  #[ORM\Id]
+  #[ORM\GeneratedValue]
+  #[ORM\Column]
+  private ?int $id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $content = null;
+  #[ORM\Column(type: Types::TEXT)]
+  private ?string $content = null;
 
-    #[ORM\Column(type: Types::ARRAY)]
-    private array $months = [];
+  #[ORM\Column(type: Types::JSON)]
+  private array $months = [];
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+  public function getId(): ?int
+  {
+    return $this->id;
+  }
 
-    public function getContent(): ?string
-    {
-        return $this->content;
-    }
+  public function getContent(): ?string
+  {
+    return $this->content;
+  }
 
-    public function setContent(string $content): static
-    {
-        $this->content = $content;
+  public function setContent(string $content): static
+  {
+    $this->content = $content;
 
-        return $this;
-    }
+    return $this;
+  }
 
-    public function getMonths(): array
-    {
-        return $this->months;
-    }
+  public function getMonths(): array
+  {
+    return $this->months;
+  }
 
-    public function setMonths(array $months): static
-    {
-        $this->months = $months;
+  public function setMonths(array $months): static
+  {
+    $this->months = $months;
 
-        return $this;
-    }
+    return $this;
+  }
 }

@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Advice;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -28,6 +29,14 @@ class AppFixtures extends Fixture
       $user->setPassword($hashedPassword);
 
       $manager->persist($user);
+    }
+
+    for ($i = 0; $i < 10; $i++) {
+      $advice = new Advice();
+      $advice->setContent("Conseil n°" . $i);
+      $advice->setMonths([$i, $i + 1]);
+
+      $manager->persist($advice);
     }
 
     $manager->flush();
