@@ -9,6 +9,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -19,7 +21,7 @@ final class AdviceController extends AbstractController
   public function getAdvicesByMonth(int $month, AdviceRepository $adviceRepository, SerializerInterface $serializer): JsonResponse
   {
     if ($month < 1 || $month > 12) {
-      return new JsonResponse(['error' => 'Invalid month.'], Response::HTTP_BAD_REQUEST);
+      throw new BadRequestHttpException('Invalid month.');
     }
 
     $advices = $this->getAdvicePerMonth($adviceRepository, $month);
@@ -37,16 +39,13 @@ final class AdviceController extends AbstractController
   }
 
   #[Route('/api/advice/{id}', name: 'delete-advice', methods: ['DELETE'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un conseil.')]
+  #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a advice.')]
   public function deleteAdvice(int $id, AdviceRepository $adviceRepository, EntityManagerInterface $entityManager): JsonResponse
   {
     $advice = $adviceRepository->find($id);
 
     if (!$advice) {
-      return new JsonResponse(
-        ['error' => 'Advice not found.'],
-        Response::HTTP_NOT_FOUND
-      );
+      throw new NotFoundHttpException('Advice not found.');
     }
 
     $entityManager->remove($advice);
@@ -60,7 +59,7 @@ final class AdviceController extends AbstractController
   }
 
   #[Route('/api/advice/{id}', name: 'modify-advice', methods: ['PUT'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour modifier un conseil.')]
+  #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to modify a advice.')]
   public function modifyAdvice(
     int $id,
     AdviceRepository $adviceRepository,
@@ -70,10 +69,7 @@ final class AdviceController extends AbstractController
     $advice = $adviceRepository->find($id);
 
     if (!$advice) {
-      return new JsonResponse(
-        ['error' => 'Advice not found.'],
-        Response::HTTP_NOT_FOUND
-      );
+      throw new NotFoundHttpException('Advice not found.');
     }
 
     $data = json_decode($request->getContent(), true);
@@ -96,7 +92,7 @@ final class AdviceController extends AbstractController
   }
 
   #[Route('/api/advice/new', name: 'create-advice', methods: ['POST'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un conseil.')]
+  #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to create a advice.')]
   public function createAdvice(
     EntityManagerInterface $entityManager,
     Request $request,

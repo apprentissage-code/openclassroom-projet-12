@@ -9,6 +9,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -25,16 +27,13 @@ final class UserController extends AbstractController
   }
 
   #[Route('/api/user/{id}', name: 'delete-user', methods: ['DELETE'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un utilisateur')]
+  #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a user.')]
   public function deleteUser(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
   {
     $user = $userRepository->find($id);
 
     if (!$user) {
-      return new JsonResponse(
-        ['error' => 'User not found'],
-        Response::HTTP_NOT_FOUND
-      );
+      throw new NotFoundHttpException('User not found');
     }
 
     $entityManager->remove($user);
@@ -48,7 +47,7 @@ final class UserController extends AbstractController
   }
 
   #[Route('/api/user/{id}', name: 'modify-user', methods: ['PUT'])]
-  #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour modifier un utilisateur')]
+  #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to modify a user.')]
   public function modifyUser(
     int $id,
     UserRepository $userRepository,
@@ -59,10 +58,7 @@ final class UserController extends AbstractController
     $user = $userRepository->find($id);
 
     if (!$user) {
-      return new JsonResponse(
-        ['error' => 'User not found'],
-        Response::HTTP_NOT_FOUND
-      );
+      throw new NotFoundHttpException('User not found');
     }
 
     $data = json_decode($request->getContent(), true);
@@ -99,7 +95,7 @@ final class UserController extends AbstractController
 
     foreach (['login', 'postcode', 'password'] as $field) {
       if (empty($data[$field])) {
-        return new JsonResponse(['error' => ucfirst($field) . ' is mandatory.'], Response::HTTP_BAD_REQUEST);
+        throw new BadRequestHttpException(ucfirst($field) . ' is mandatory.');
       }
     }
 
