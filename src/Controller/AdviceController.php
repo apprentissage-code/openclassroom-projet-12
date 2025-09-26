@@ -24,7 +24,7 @@ final class AdviceController extends AbstractController
       throw new BadRequestHttpException('Invalid month.');
     }
 
-    $advices = $this->getAdvicePerMonth($adviceRepository, $month);
+    $advices = $adviceRepository->findByMonth($month);
     $jsonAdvices = $serializer->serialize($advices, 'json');
     return new JsonResponse($jsonAdvices, Response::HTTP_OK, [], true);
   }
@@ -33,7 +33,7 @@ final class AdviceController extends AbstractController
   public function getAdvices(AdviceRepository $adviceRepository, SerializerInterface $serializer): JsonResponse
   {
     $currentMonth = (int) date('n');
-    $advices = $this->getAdvicePerMonth($adviceRepository, $currentMonth);
+    $advices = $adviceRepository->findByMonth($currentMonth);
     $jsonAdvices = $serializer->serialize($advices, 'json');
     return new JsonResponse($jsonAdvices, Response::HTTP_OK, [], true);
   }
@@ -119,14 +119,6 @@ final class AdviceController extends AbstractController
       ],
       Response::HTTP_OK,
       [],
-    );
-  }
-
-  private function getAdvicePerMonth(AdviceRepository $adviceRepository, int $month)
-  {
-    return array_filter(
-      $adviceRepository->findAll(),
-      fn($advice) => in_array($month, $advice->getMonths())
     );
   }
 }

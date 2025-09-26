@@ -11,33 +11,26 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class AdviceRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Advice::class);
-    }
+  public function __construct(ManagerRegistry $registry)
+  {
+    parent::__construct($registry, Advice::class);
+  }
 
-    //    /**
-    //     * @return Advice[] Returns an array of Advice objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+  public function findByMonth(int $month): array
+  {
+    $conn = $this->getEntityManager()->getConnection();
 
-    //    public function findOneBySomeField($value): ?Advice
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    $sql = '
+        SELECT *
+        FROM advice a
+        WHERE a.months::jsonb @> :monthJson
+    ';
+
+    $stmt = $conn->prepare($sql);
+    $resultSet = $stmt->executeQuery([
+      'monthJson' => json_encode([$month]),
+    ]);
+
+    return $resultSet->fetchAllAssociative();
+  }
 }
