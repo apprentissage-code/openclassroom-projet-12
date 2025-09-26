@@ -40,10 +40,8 @@ final class AdviceController extends AbstractController
 
   #[Route('/api/advice/{id}', name: 'delete-advice', methods: ['DELETE'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a advice.')]
-  public function deleteAdvice(int $id, AdviceRepository $adviceRepository, EntityManagerInterface $entityManager): JsonResponse
+  public function deleteAdvice(Advice $advice, AdviceRepository $adviceRepository, EntityManagerInterface $entityManager): JsonResponse
   {
-    $advice = $adviceRepository->find($id);
-
     if (!$advice) {
       throw new NotFoundHttpException('Advice not found.');
     }
@@ -52,7 +50,7 @@ final class AdviceController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "Advice {$id} deleted successfully."],
+      ['message' => "Advice {$advice->getId()} deleted successfully."],
       Response::HTTP_OK,
       [],
     );
@@ -61,13 +59,11 @@ final class AdviceController extends AbstractController
   #[Route('/api/advice/{id}', name: 'modify-advice', methods: ['PUT'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to modify a advice.')]
   public function modifyAdvice(
-    int $id,
+    Advice $advice,
     AdviceRepository $adviceRepository,
     EntityManagerInterface $entityManager,
     Request $request,
   ): JsonResponse {
-    $advice = $adviceRepository->find($id);
-
     if (!$advice) {
       throw new NotFoundHttpException('Advice not found.');
     }
@@ -85,7 +81,7 @@ final class AdviceController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "Advice {$id} updated successfully."],
+      ['message' => "Advice {$advice->getId()} updated successfully."],
       Response::HTTP_OK,
       [],
     );

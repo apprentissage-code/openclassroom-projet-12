@@ -28,10 +28,8 @@ final class UserController extends AbstractController
 
   #[Route('/api/user/{id}', name: 'delete-user', methods: ['DELETE'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a user.')]
-  public function deleteUser(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
+  public function deleteUser(User $user, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
   {
-    $user = $userRepository->find($id);
-
     if (!$user) {
       throw new NotFoundHttpException('User not found');
     }
@@ -40,7 +38,7 @@ final class UserController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "User {$id} deleted successfully"],
+      ['message' => "User deleted successfully"],
       Response::HTTP_OK,
       [],
     );
@@ -49,13 +47,12 @@ final class UserController extends AbstractController
   #[Route('/api/user/{id}', name: 'modify-user', methods: ['PUT'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to modify a user.')]
   public function modifyUser(
-    int $id,
+    User $user,
     UserRepository $userRepository,
     EntityManagerInterface $entityManager,
     Request $request,
     UserPasswordHasherInterface $passwordHasher
   ): JsonResponse {
-    $user = $userRepository->find($id);
 
     if (!$user) {
       throw new NotFoundHttpException('User not found');
@@ -79,7 +76,7 @@ final class UserController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "User {$id} updated successfully"],
+      ['message' => "User {$user->getId()} updated successfully"],
       Response::HTTP_OK,
       [],
     );
