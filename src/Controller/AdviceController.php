@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -21,7 +22,7 @@ final class AdviceController extends AbstractController
   public function getAdvicesByMonth(int $month, AdviceRepository $adviceRepository, SerializerInterface $serializer): JsonResponse
   {
     if ($month < 1 || $month > 12) {
-      throw new BadRequestHttpException('Invalid month.');
+      throw new HttpException(Response::HTTP_UNPROCESSABLE_ENTITY, 'Invalid month.');
     }
 
     $advices = $adviceRepository->findByMonth($month);
