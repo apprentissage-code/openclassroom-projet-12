@@ -58,7 +58,7 @@ final class AdviceController extends AbstractController
     );
   }
 
-  #[Route('/api/advices/{id}', name: 'modify-advice', methods: ['PUT'])]
+  #[Route('/api/advices/{id}', name: 'modify-advice', methods: ['PATCH'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to modify a advice.')]
   public function modifyAdvice(
     Advice $advice,

@@ -44,7 +44,7 @@ final class UserController extends AbstractController
     );
   }
 
-  #[Route('/api/users/{id}', name: 'modify-user', methods: ['PUT'])]
+  #[Route('/api/users/{id}', name: 'modify-user', methods: ['PATCH'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to modify a user.')]
   public function modifyUser(
     User $user,
