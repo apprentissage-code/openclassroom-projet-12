@@ -52,9 +52,8 @@ final class AdviceController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "Advice {$advice->getId()} deleted successfully."],
+      null,
       Response::HTTP_NO_CONTENT,
-      [],
     );
   }
 

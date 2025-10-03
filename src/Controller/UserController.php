@@ -38,9 +38,8 @@ final class UserController extends AbstractController
     $entityManager->flush();
 
     return new JsonResponse(
-      ['message' => "User deleted successfully"],
+      null,
       Response::HTTP_NO_CONTENT,
-      [],
     );
   }
 
