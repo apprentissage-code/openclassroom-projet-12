@@ -56,7 +56,7 @@ final class MeteoController extends AbstractController
     return new JsonResponse($data["content"], $data["statusCode"], [], true);
   }
 
-  private function callToApiOpenWeatherMap(int|string $cityOrZip, string $cacheId, HttpClientInterface $client, TagAwareCacheInterface $cache)
+  private function callToApiOpenWeatherMap(string $cityOrZip, string $cacheId, HttpClientInterface $client, TagAwareCacheInterface $cache)
   {
     $data = $cache->get($cacheId, function (ItemInterface $item) use ($client, $cityOrZip) {
       $item->expiresAfter(600);
