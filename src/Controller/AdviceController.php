@@ -9,7 +9,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
@@ -39,10 +38,12 @@ final class AdviceController extends AbstractController
     return new JsonResponse($jsonAdvices, Response::HTTP_OK, [], true);
   }
 
-  #[Route('/api/advice/{id}', name: 'delete-advice', methods: ['DELETE'])]
+  #[Route('/api/advices/{id}', name: 'delete-advice', methods: ['DELETE'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a advice.')]
-  public function deleteAdvice(Advice $advice, AdviceRepository $adviceRepository, EntityManagerInterface $entityManager): JsonResponse
-  {
+  public function deleteAdvice(
+    Advice $advice,
+    EntityManagerInterface $entityManager
+  ): JsonResponse {
     if (!$advice) {
       throw new NotFoundHttpException('Advice not found.');
     }
@@ -57,11 +58,10 @@ final class AdviceController extends AbstractController
     );
   }
 
-  #[Route('/api/advice/{id}', name: 'modify-advice', methods: ['PUT'])]
+  #[Route('/api/advices/{id}', name: 'modify-advice', methods: ['PUT'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to modify a advice.')]
   public function modifyAdvice(
     Advice $advice,
-    AdviceRepository $adviceRepository,
     EntityManagerInterface $entityManager,
     Request $request,
   ): JsonResponse {
@@ -88,7 +88,7 @@ final class AdviceController extends AbstractController
     );
   }
 
-  #[Route('/api/advice/new', name: 'create-advice', methods: ['POST'])]
+  #[Route('/api/advices', name: 'create-advice', methods: ['POST'])]
   #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to create a advice.')]
   public function createAdvice(
     EntityManagerInterface $entityManager,
@@ -118,7 +118,7 @@ final class AdviceController extends AbstractController
           'months' => $advice->getMonths(),
         ]
       ],
-      Response::HTTP_OK,
+      Response::HTTP_CREATED,
       [],
     );
   }
