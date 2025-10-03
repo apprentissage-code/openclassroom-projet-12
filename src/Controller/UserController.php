@@ -39,7 +39,7 @@ final class UserController extends AbstractController
 
     return new JsonResponse(
       ['message' => "User deleted successfully"],
-      Response::HTTP_OK,
+      Response::HTTP_NO_CONTENT,
       [],
     );
   }

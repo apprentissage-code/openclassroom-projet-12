@@ -53,7 +53,7 @@ final class AdviceController extends AbstractController
 
     return new JsonResponse(
       ['message' => "Advice {$advice->getId()} deleted successfully."],
-      Response::HTTP_OK,
+      Response::HTTP_NO_CONTENT,
       [],
     );
   }
